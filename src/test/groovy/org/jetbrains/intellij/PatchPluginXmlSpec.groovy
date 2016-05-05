@@ -39,7 +39,6 @@ class PatchPluginXmlSpec extends IntelliJPluginSpecBase {
         when:
         def project = run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
         then:
-        println(ouputPluginXml(project).text)
         ouputPluginXml(project).text == """<idea-plugin version="2">
   <version>0.42.123</version>
   <idea-version since-build="141.1532.4" until-build="141.9999"/>
@@ -97,6 +96,55 @@ intellij {
         ouputPluginXml(project).text == """<idea-plugin version="2">
   <idea-version since-build="141.1532.4" until-build="141.9999"/>
   <version>0.10.0</version>
+</idea-plugin>
+"""
+    }
+
+    def 'skip patch task if intellij version did not changed'() {
+        given:
+        pluginXml << "<idea-plugin version=\"2\"></idea-plugin>"
+        buildFile << "version='0.42.123'\nintellij { version = '14.1.4' }"
+        when:
+        run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        def project = run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        then:
+        stdout.contains(":processResources UP-TO-DATE")
+        ouputPluginXml(project).text == """<idea-plugin version="2">
+  <version>0.42.123</version>
+  <idea-version since-build="141.1532.4" until-build="141.9999"/>
+</idea-plugin>
+"""
+    }
+
+    def 'patch version and since until builds on intellij version changing'() {
+        given:
+        pluginXml << "<idea-plugin version=\"2\"></idea-plugin>"
+        buildFile << "version='0.42.123'\nintellij { version = '14.1.3' }"
+        when:
+        run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        buildFile << "\nintellij { version = '14.1.4' }"
+        def project = run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        then:
+        !stdout.contains(":processResources UP-TO-DATE")
+        ouputPluginXml(project).text == """<idea-plugin version="2">
+  <version>0.42.123</version>
+  <idea-version since-build="141.1532.4" until-build="141.9999"/>
+</idea-plugin>
+"""
+    }
+
+    def 'patch plugin xml with doctype'() {
+        given:
+        pluginXml << """<!DOCTYPE idea-plugin PUBLIC \"Plugin/DTD\" \"http://plugins.jetbrains.com/plugin.dtd\">
+<idea-plugin version=\"2\"></idea-plugin>
+"""
+        buildFile << "version='0.42.123'\nintellij { version = '14.1.4' }"
+        when:
+        def project = run(JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        then:
+        ouputPluginXml(project).text == """<idea-plugin version="2">
+  <version>0.42.123</version>
+  <idea-version since-build="141.1532.4" until-build="141.9999"/>
 </idea-plugin>
 """
     }

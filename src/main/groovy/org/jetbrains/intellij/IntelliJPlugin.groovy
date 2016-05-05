@@ -87,6 +87,7 @@ class IntelliJPlugin implements Plugin<Project> {
         LOG.info("Adding IntelliJ IDEA dependency")
         project.dependencies.add(configuration.name, "com.jetbrains.intellij.idea:idea$extension.type:$extension.version")
         extension.ideaDirectory = ideaDirectory(project, configuration)
+        LOG.info("IntelliJ IDEA " + Utils.ideaBuildNumber(extension.ideaDirectory) + " is used for building")
 
         if (extension.downloadSources) {
             def sourcesConfiguration = project.configurations.create(SOURCES_CONFIGURATION_NAME).setVisible(false)
@@ -154,7 +155,10 @@ class IntelliJPlugin implements Plugin<Project> {
 
     private static void configurePatchPluginXmlTask(@NotNull Project project) {
         LOG.info("Configuring patch plugin.xml task")
-        project.tasks.withType(ProcessResources.class)*.doLast(new PatchPluginXmlTask())
+        def processResourcesTasks = project.tasks.withType(ProcessResources.class)
+        def patchPluginXmlAction = new PatchPluginXmlAction(project)
+        processResourcesTasks*.doLast(patchPluginXmlAction)
+        processResourcesTasks*.inputs*.properties(patchPluginXmlAction.properties)
     }
 
     private static void configurePrepareSandboxTask(@NotNull Project project) {
@@ -216,9 +220,9 @@ class IntelliJPlugin implements Plugin<Project> {
             baseName = extension.pluginName
             from("$prepareSandboxTask.destinationDir/$extension.pluginName")
             into(extension.pluginName)
-            dependsOn(prepareSandboxTask) 
+            dependsOn(prepareSandboxTask)
         }
-        
+
         ArchivePublishArtifact zipArtifact = new ArchivePublishArtifact(zip);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME);
         runtimeConfiguration.getArtifacts().add(zipArtifact);

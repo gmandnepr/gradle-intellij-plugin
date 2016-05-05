@@ -145,9 +145,11 @@ As examples of using this plugin you can check out following projects:
 - [HCL plugin](https://github.com/VladRassokhin/intellij-hcl)
 - [Robot plugin](https://github.com/AmailP/robot-plugin)
 - [TOML plugin](https://github.com/stuartcarnie/toml-plugin)
+- [SQLDelight Android Studio Plugin](https://github.com/square/sqldelight/tree/master/sqldelight-studio-plugin)
 - https://github.com/breandan/idear
 - https://github.com/pedrovgs/AndroidWiFiADB
 - https://github.com/SonarSource/sonar-intellij
+- [IdeaVim plugin](https://github.com/JetBrains/ideavim) and its [TeamCity build configuration](https://teamcity.jetbrains.com/project.html?projectId=IdeaVim&guest=1)
 
 
 # License
